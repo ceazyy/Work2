@@ -1,0 +1,42 @@
+# Configuration for Verilog Analysis and LaTeX Documentation Generator
+
+# Azure OpenAI API Configuration
+azure_openai:
+  api_key: "${AZURE_OPENAI_API_KEY}"  # Set this environment variable or replace with your API key
+  endpoint: "${AZURE_OPENAI_ENDPOINT}"  # Your Azure OpenAI endpoint (e.g., https://your-resource.openai.azure.com/)
+  export AZURE_OPENAI_API_KEY="your-azure-api-key"
+  export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com/"
+  api_version: "2024-02-15-preview"  # API version
+  deployment_name: "gpt-4o-mini"  # Your deployment name in Azure
+  temperature: 0.3  # Lower temperature for more consistent technical documentation
+  max_tokens: 4000  # Adjust based on your needs
+
+# Analysis Configuration
+analysis:
+  # Depth of analysis for each Verilog module
+  analysis_depth: "comprehensive"  # Options: basic, detailed, comprehensive
+  
+  # Include specific analysis sections
+  include_sections:
+    - functionality_overview
+    - module_interface
+    - behavioral_description
+    - timing_analysis
+    - design_patterns
+    - potential_improvements
+    - test_considerations
+  
+  # Output formatting preferences
+  output_format:
+    use_technical_language: true
+    include_code_snippets: false  # Whether to include Verilog code in LaTeX output
+    max_section_length: 500  # Maximum words per section
+
+# File Processing
+input:
+  directory: "input"  # Directory containing .v files
+  file_extensions: [".v", ".sv"]  # Supported Verilog file extensions
+  
+output:
+  latex_filename: "specification_document.tex"
+  bibliography_file: "references.bib"  # Optional: create bibliography file

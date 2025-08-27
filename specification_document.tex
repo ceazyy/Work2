@@ -1,0 +1,309 @@
+\documentclass[10pt]{article}
+\usepackage[a4paper, tmargin=0.75in, lmargin=0.80in, rmargin=0.80in, bmargin=1in]{geometry}
+\usepackage{hyperref}
+%\usepackage{multicol}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,      
+    urlcolor=blue,
+    citecolor=black,
+}
+%\usepackage[numbers,sort&compress]{natbib} % for a numerical citation list
+\usepackage{natbib} % to cite references by surname and year
+\usepackage{graphicx}
+\pagestyle{empty}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ENTER SOME IMPORTANT INFORMATION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\studentname}{Student Name}
+\newcommand{\studentnumber}{12345678}
+\newcommand{\researchcentre}{Astrophysics Research Centre}
+\newcommand{\projecttitle}{Something about Physics and/or Mathematics}
+\newcommand{\supervisor}{Dr A. N. Other}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+
+
+
+
+\begin{center}
+    \LARGE \textbf{Digital Design Specification Document} \\
+    \vspace{0.5cm}
+    \large Cadence Design Systems \\
+    \vspace{0.5cm}
+    \today
+\end{center}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+This document provides a comprehensive specification for a series of Verilog modules designed for digital systems. The modules analyzed include a 4-bit counter, a D-type flip-flop, a Last-In-First-Out (LIFO) stack, and a JK flip-flop. Each module is examined in detail, covering its functionality, interface, behavior, timing considerations, design patterns, and potential improvements. This document is intended for academic and professional audiences interested in digital design and implementation.
+
+\section{Module Analysis}
+
+\subsection{4-bit Counter Module}
+
+\subsubsection{Code Listing}
+\begin{verbatim}
+module counter (  input clk,               // Declare input port for clock 
+                                              to allow counter to count up
+                  input rstn,              // Declare input port for reset to allow 
+                                              the counter to be reset to 0 when required
+                  output reg[3:0] out);    // Declare 4-bit output port to get the counter values
+
+  always @ (posedge clk) begin
+    if (! rstn)
+      out <= 0;
+    else
+      out <= out + 1;
+  end
+endmodule
+\end{verbatim}
+
+\subsubsection{Functional Analysis}
+The 4-bit counter module is a synchronous binary up-counter. It increments its 4-bit output on each rising edge of the clock signal, provided the reset signal is not asserted. When the reset is active low, the counter resets to zero.
+
+\subsubsection{Interface Description}
+\begin{itemize}
+    \item \textbf{Inputs:}
+    \begin{itemize}
+        \item \texttt{clk}: Clock signal.
+        \item \texttt{rstn}: Active-low reset signal.
+    \end{itemize}
+    \item \textbf{Outputs:}
+    \begin{itemize}
+        \item \texttt{out}: 4-bit output representing the current count.
+    \end{itemize}
+    \item \textbf{Parameters:} None.
+\end{itemize}
+
+\subsubsection{Behavioral Analysis}
+The counter operates synchronously with the clock. On the rising edge of the clock, if the reset is low, the counter resets to zero. Otherwise, it increments by one.
+
+\subsubsection{Timing Considerations}
+The module is sensitive to the rising edge of the clock. Reset is asynchronous, but its deassertion should be synchronized with the clock to avoid metastability.
+
+\subsubsection{Design Patterns Used}
+The module uses a synchronous reset pattern and non-blocking assignments for stable sequential logic behavior.
+
+\subsubsection{Potential Improvements}
+Parameterizing the counter width and adding an enable signal could enhance flexibility and control.
+
+\subsection{D-type Flip-Flop Module}
+
+\subsubsection{Code Listing}
+\begin{verbatim}
+module dff 	( input d,
+              input rstn,
+              input clk,
+              output reg q);
+
+	always @ (posedge clk or negedge rstn)
+       if (!rstn)
+          q <= 0;
+       else
+          q <= d;
+endmodule
+\end{verbatim}
+
+\subsubsection{Functional Analysis}
+The D-type flip-flop captures the input data on the rising edge of the clock and holds it at the output. An asynchronous reset sets the output to zero.
+
+\subsubsection{Interface Description}
+\begin{itemize}
+    \item \textbf{Inputs:}
+    \begin{itemize}
+        \item \texttt{d}: Data input.
+        \item \texttt{rstn}: Active-low asynchronous reset.
+        \item \texttt{clk}: Clock signal.
+    \end{itemize}
+    \item \textbf{Outputs:}
+    \begin{itemize}
+        \item \texttt{q}: Output data.
+    \end{itemize}
+    \item \textbf{Parameters:} None.
+\end{itemize}
+
+\subsubsection{Behavioral Analysis}
+The flip-flop captures the input data on the rising edge of the clock. The asynchronous reset sets the output to zero immediately when asserted.
+
+\subsubsection{Timing Considerations}
+The module is sensitive to the rising edge of the clock and the negative edge of the reset. Proper synchronization of reset deassertion is crucial.
+
+\subsubsection{Design Patterns Used}
+The module uses a standard D flip-flop design pattern with asynchronous reset.
+
+\subsubsection{Potential Improvements}
+Adding a synchronous reset option and parameterizing the reset value could enhance flexibility.
+
+\subsection{LIFO Stack Module}
+
+\subsubsection{Code Listing}
+\begin{verbatim}
+module lifo #(parameter WIDTH = 32, parameter DEPTH = 16)(
+    input wire              clk,
+    input wire              rst,
+    input wire              push,
+    input wire              pop,
+    input wire [WIDTH-1:0]  data_in,
+    output reg [WIDTH-1:0]  data_out,
+    output reg              empty,
+    output reg              full
+);
+
+    reg [WIDTH-1:0]        stack [0:DEPTH-1];
+    reg [$clog2(DEPTH):0]  stack_ptr;
+
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            stack_ptr <= 0;
+            empty <= 1;
+            full <= 0;
+
+        end else begin
+            if (push && !full) begin
+                stack[stack_ptr] <= data_in;
+                stack_ptr        <= stack_ptr + 1;
+                empty            <= 0;
+
+                if (stack_ptr == DEPTH - 1) begin
+                    full <= 1;
+                end
+
+            end else if (pop && !empty) begin
+                stack_ptr <= stack_ptr - 1;
+                full      <= 0;
+
+                if (stack_ptr == 1) begin
+                    empty <= 1;
+                end
+            end
+        end
+    end
+
+    always @(*) begin
+      if (!empty & pop)
+            data_out = stack[stack_ptr - 1];
+        else
+            data_out = {WIDTH{1'b0}};
+    end
+
+endmodule
+\end{verbatim}
+
+\subsubsection{Functional Analysis}
+The LIFO module implements a stack with parameterizable width and depth, supporting push and pop operations with flags indicating full and empty states.
+
+\subsubsection{Interface Description}
+\begin{itemize}
+    \item \textbf{Parameters:}
+    \begin{itemize}
+        \item \texttt{WIDTH}: Bit-width of data elements.
+        \item \texttt{DEPTH}: Maximum number of elements.
+    \end{itemize}
+    \item \textbf{Inputs:}
+    \begin{itemize}
+        \item \texttt{clk}: Clock signal.
+        \item \texttt{rst}: Asynchronous reset.
+        \item \texttt{push}: Push control signal.
+        \item \texttt{pop}: Pop control signal.
+        \item \texttt{data_in}: Data input bus.
+    \end{itemize}
+    \item \textbf{Outputs:}
+    \begin{itemize}
+        \item \texttt{data_out}: Data output bus.
+        \item \texttt{empty}: Empty flag.
+        \item \texttt{full}: Full flag.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Behavioral Analysis}
+The stack supports synchronous push and pop operations. The stack pointer is updated based on these operations, with flags indicating the stack's state.
+
+\subsubsection{Timing Considerations}
+The module operates synchronously with the clock. Reset is asynchronous, requiring careful handling to prevent metastability.
+
+\subsubsection{Design Patterns Used}
+The module uses parameterization for flexibility and separates sequential and combinatorial logic for clarity.
+
+\subsubsection{Potential Improvements}
+Enhancing the handling of full and empty conditions and adding error signaling could improve robustness.
+
+\subsection{JK Flip-Flop Module}
+
+\subsubsection{Code Listing}
+\begin{verbatim}
+module jk_ff ( input j,
+               input k,
+               input clk,
+               output q);
+
+   reg q;
+
+   always @ (posedge clk)
+      case ({j,k})
+         2'b00 :  q <= q;
+         2'b01 :  q <= 0;
+         2'b10 :  q <= 1;
+         2'b11 :  q <= ~q;
+      endcase
+endmodule
+\end{verbatim}
+
+\subsubsection{Functional Analysis}
+The JK flip-flop toggles its output based on the J and K inputs on the rising edge of the clock, with specific behaviors for each input combination.
+
+\subsubsection{Interface Description}
+\begin{itemize}
+    \item \textbf{Inputs:}
+    \begin{itemize}
+        \item \texttt{j}: J input.
+        \item \texttt{k}: K input.
+        \item \texttt{clk}: Clock signal.
+    \end{itemize}
+    \item \textbf{Outputs:}
+    \begin{itemize}
+        \item \texttt{q}: Output state.
+    \end{itemize}
+    \item \textbf{Parameters:} None.
+\end{itemize}
+
+\subsubsection{Behavioral Analysis}
+The JK flip-flop updates its output based on the J and K inputs, with toggle functionality when both inputs are high.
+
+\subsubsection{Timing Considerations}
+The module is sensitive to the rising edge of the clock, with no explicit handling of input synchronization.
+
+\subsubsection{Design Patterns Used}
+The module uses a case statement within a clocked always block, a common pattern for implementing flip-flops.
+
+\subsubsection{Potential Improvements}
+Adding asynchronous set/reset inputs could enhance flexibility, and parameterization could support broader use cases.
+
+\section{Conclusions}
+
+This document has provided a detailed analysis of several Verilog modules, each serving a unique function in digital systems. The modules demonstrate fundamental digital design principles and offer opportunities for enhancement through parameterization and additional features. These modules are suitable for use in educational and professional settings, offering a foundation for more complex digital designs.
+
+\end{document}
+```
+
+\end{document}

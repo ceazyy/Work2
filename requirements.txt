@@ -1,0 +1,4 @@
+openai>=1.0.0
+PyYAML>=6.0
+pathlib2>=2.3.0
+mcp>=1.0.0

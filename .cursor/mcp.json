@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+      "verilog-analyzer": {
+        "command": "python",
+        "args": ["verilog_mcp_server.py"],
+        "env": {
+          "OPENAI_API_KEY": ""
+      }
+    }
+  }
+  
